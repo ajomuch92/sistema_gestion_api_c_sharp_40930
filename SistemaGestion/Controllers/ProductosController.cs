@@ -25,7 +25,7 @@ namespace SistemaGestion.Controllers
         }
 
         [HttpGet("{id}")]
-        public ActionResult<Producto> Get(int id)
+        public ActionResult<Producto> Get(long id)
         {
             try
             {
@@ -73,7 +73,6 @@ namespace SistemaGestion.Controllers
                 {
                     return NotFound("El producto no fue encontrado");
                 }
-                return Ok();
             }
             catch (Exception ex)
             {
@@ -102,5 +101,25 @@ namespace SistemaGestion.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public ActionResult<Producto> Put(long id, [FromBody] Producto productoAActualizar)
+        {
+            try
+            {
+                Producto? productoActualizado = repository.actualizarProducto(id, productoAActualizar);
+                if (productoActualizado != null)
+                {
+                    return Ok(productoActualizado);
+                }
+                else
+                {
+                    return NotFound("El producto no fue encontrado");
+                }
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
     }
 }

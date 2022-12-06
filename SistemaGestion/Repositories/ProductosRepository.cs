@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using SistemaGestion.Models;
 
 namespace SistemaGestion.Repositories
@@ -60,7 +61,7 @@ namespace SistemaGestion.Repositories
             return lista;
         }
 
-        public Producto? obtenerProducto(int id)
+        public Producto? obtenerProducto(long id)
         {
             if (conexion == null)
             {
@@ -114,6 +115,66 @@ namespace SistemaGestion.Repositories
                     cmd.Parameters.Add(new SqlParameter("stock", SqlDbType.Int) { Value = producto.Stock });
                     cmd.Parameters.Add(new SqlParameter("idUsuario", SqlDbType.BigInt) { Value = producto.IdUsuario });
                     producto.Id = long.Parse(cmd.ExecuteScalar().ToString());
+                    return producto;
+                }
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                conexion.Close();
+            }
+        }
+
+        public Producto? actualizarProducto(long id, Producto productoAActualizar)
+        {
+            if (conexion == null)
+            {
+                throw new Exception("Conexión no establecida");
+            }
+            try
+            {
+                Producto? producto = obtenerProducto(id);
+                if (producto == null)
+                {
+                    return null;
+                }
+                List<string> camposAActualizar = new List<string>();
+                if (producto.Descripcion != productoAActualizar.Descripcion && !string.IsNullOrEmpty(productoAActualizar.Descripcion))
+                {
+                    camposAActualizar.Add("descripciones = @descripcion");
+                    producto.Descripcion = productoAActualizar.Descripcion;
+                }
+                if (producto.Costo != productoAActualizar.Costo && productoAActualizar.Costo > 0)
+                {
+                    camposAActualizar.Add("costo = @costo");
+                    producto.Costo = productoAActualizar.Costo;
+                }
+                if (producto.PrecioVenta != productoAActualizar.PrecioVenta && productoAActualizar.PrecioVenta > 0)
+                {
+                    camposAActualizar.Add("precioVenta = @precioVenta");
+                    producto.PrecioVenta = productoAActualizar.PrecioVenta;
+                }
+                if (producto.Stock != productoAActualizar.Stock && productoAActualizar.Stock > 0)
+                {
+                    camposAActualizar.Add("stock = @stock");
+                    producto.Stock = productoAActualizar.Stock;
+                }
+                if (camposAActualizar.Count == 0)
+                {
+                    throw new Exception("No new fields to update");
+                }
+                using (SqlCommand cmd = new SqlCommand($"UPDATE Producto SET {String.Join(", ", camposAActualizar)} WHERE id = @id", conexion))
+                {
+                    cmd.Parameters.Add(new SqlParameter("descripcion", SqlDbType.VarChar) { Value = productoAActualizar.Descripcion });
+                    cmd.Parameters.Add(new SqlParameter("costo", SqlDbType.Float) { Value = productoAActualizar.Costo });
+                    cmd.Parameters.Add(new SqlParameter("precioVenta", SqlDbType.Float) { Value = productoAActualizar.PrecioVenta });
+                    cmd.Parameters.Add(new SqlParameter("stock", SqlDbType.Int) { Value = productoAActualizar.Stock });
+                    cmd.Parameters.Add(new SqlParameter("id", SqlDbType.BigInt) { Value = id });
+                    conexion.Open();
+                    cmd.ExecuteNonQuery();
                     return producto;
                 }
             }
