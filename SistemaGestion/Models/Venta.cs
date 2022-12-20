@@ -5,11 +5,11 @@
         public long Id { get; set; }
         public string? Comentario { get; set; }
         public long IdUsuario { get; set; }
-        List<ProductoVendido>? ProductosVendidos { get; set; }
-    }
+        public List<ProductoVendido>? ProductosVendidos { get; set; }
 
-    public class ProductoVendido
-    {
-
+        public Venta()
+        {
+            ProductosVendidos = new List<ProductoVendido>();
+        }
     }
 }

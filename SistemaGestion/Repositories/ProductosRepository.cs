@@ -223,6 +223,43 @@ namespace SistemaGestion.Repositories
             return producto;
         }
 
+        public static Producto? obtenerProductoSimplificadoPorId(long id, SqlConnection conexion)
+        {
+            if (conexion == null)
+            {
+                throw new Exception("Conexión no establecida");
+            }
+            try
+            {
+                using (SqlCommand cmd = new SqlCommand("SELECT Id, Stock FROM producto WHERE id = @id", conexion))
+                {
+                    if (conexion.State == ConnectionState.Closed) conexion.Open();
+                    cmd.Parameters.Add(new SqlParameter("id", SqlDbType.BigInt) { Value = id });
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            reader.Read();
+                            Producto producto = new Producto()
+                            {
+                                Id = long.Parse(reader["Id"].ToString()),
+                                Stock = int.Parse(reader["Stock"].ToString())
+                            };
+                            return producto;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                throw;
+            }
+        }
+
 
     }
 }
