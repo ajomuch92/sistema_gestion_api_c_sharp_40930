@@ -143,6 +143,91 @@ namespace SistemaGestion.Repositories
             }
         }
 
+        public List<Venta> obtenerVenta2(long? id)
+        {
+            if (conexion == null)
+            {
+                throw new Exception("Conexión no establecida");
+            }
+            List<Venta> lista = new List<Venta>();
+            try
+            {
+                string query = "SELECT A.Id, A.Comentarios, A.IdUsuario, B.Id AS IdProductoVendido, B.IdProducto, B.IdVenta, B.Stock, C.Descripciones, C.PrecioVenta " +
+                    "FROM Venta AS A " +
+                    "INNER JOIN ProductoVendido AS B " +
+                    "ON A.Id = B.IdVenta " +
+                    "INNER JOIN Producto AS C " +
+                    "ON B.IdProducto = C.Id";
+                if (id != null)
+                {
+                    query += " WHERE A.Id = @id";
+                }
+                using (SqlCommand cmd = new SqlCommand(query, conexion))
+                {
+                    conexion.Open();
+                    if (id != null)
+                    {
+                        cmd.Parameters.Add(new SqlParameter("id", SqlDbType.BigInt) { Value = id });
+                    }
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            int ultimoIdVenta = 0;
+                            Venta venta = new Venta();
+                            while (reader.Read())
+                            {
+                                int IdVenta = int.Parse(reader["Id"].ToString());
+                                if (IdVenta == ultimoIdVenta)
+                                {
+                                    ProductoVendido productoVendido = new ProductoVendido()
+                                    {
+                                        Id = long.Parse(reader["IdProductoVendido"].ToString()),
+                                        IdProducto = long.Parse(reader["IdProducto"].ToString()),
+                                        Stock = int.Parse(reader["Stock"].ToString()),
+                                        producto = new Producto()
+                                        {
+                                            Descripcion = reader["Descripciones"].ToString(),
+                                            PrecioVenta = double.Parse(reader["PrecioVenta"].ToString())
+                                        }
+                                    };
+                                    if (venta.ProductosVendidos != null)
+                                    {
+                                        venta.ProductosVendidos.Add(productoVendido);
+                                    }
+                                }
+                                else
+                                {
+                                    if (ultimoIdVenta != 0)
+                                    {
+                                        lista.Add(venta);
+                                    }
+                                    venta = new Venta()
+                                    {
+                                        Id = IdVenta,
+                                        Comentario = reader["Comentarios"].ToString(),
+                                        IdUsuario = long.Parse(reader["idUsuario"].ToString()),
+                                        ProductosVendidos = new List<ProductoVendido>(),
+                                    };
+                                    ultimoIdVenta = IdVenta;
+                                }
+                            }
+                            lista.Add(venta);
+                        }
+                    }
+                }
+                return lista;
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                conexion.Close();
+            }
+        }
+
         private List<ProductoVendido> ObtenerProductosVendidos(long id)
         {
             List<ProductoVendido> productoVendidos = new List<ProductoVendido>();

@@ -34,7 +34,7 @@ namespace SistemaGestion.Controllers
         {
             try
             {
-                return Ok(repository.obtenerVenta(null));
+                return Ok(repository.obtenerVenta2(null));
             }
             catch (Exception ex)
             {
