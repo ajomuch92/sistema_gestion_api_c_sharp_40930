@@ -28,5 +28,18 @@ namespace SistemaGestion.Controllers
                 return Problem(ex.Message);
             }
         }
+
+        [HttpGet]
+        public ActionResult Get()
+        {
+            try
+            {
+                return Ok(repository.obtenerVenta(null));
+            }
+            catch (Exception ex)
+            {
+                return Problem(ex.Message);
+            }
+        }
     }
 }
